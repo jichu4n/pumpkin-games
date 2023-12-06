@@ -1,30 +1,15 @@
-# React + TypeScript + Vite
+# Pumpkin Letter Game
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a little game I made for my kids to help them practice counting.
 
-Currently, two official plugins are available:
+![Screenshot](screenshot-1.png)
+![Screenshot](screenshot-2.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Play here: 👉 [**jichu4n.github.io/pumpkin-counting-game**](https://jichu4n.github.io/pumpkin-counting-game/) 👈
 
-## Expanding the ESLint configuration
+How to play:
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
-
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+- Open the above link on a laptop or desktop computer, as the game requires a keyboard.
+- Count the number of pumpkins on screen, and type that number on the keyboard.
+- If you type the correct number, you win!
+- If you need a bit of help, press space to show hints on top of the pumpkins.
