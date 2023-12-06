@@ -7,7 +7,13 @@ const NUM_PUMPKIN_STYLES = 11;
 const PUMPKIN_SIZE = 60;
 
 /** Renders pumpkins in rows of 10. */
-export function PumpkinRows({count}: {count: number}) {
+export function PumpkinRows({
+  count,
+  className,
+}: {
+  count: number;
+  className?: string;
+}) {
   const numRows = Math.ceil(count / 10);
   const styleIds = useMemo(() => {
     const styleIds: Array<number> = [];
@@ -23,7 +29,7 @@ export function PumpkinRows({count}: {count: number}) {
     return styleIds;
   }, [numRows]);
   return (
-    <div className="container-fluid">
+    <div className={`container-fluid ${className}`}>
       {...Array(numRows)
         .fill(0)
         .map((_, rowId) => (

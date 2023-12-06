@@ -1,10 +1,11 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {KeyboardEvent, useEffect, useState} from 'react';
+import Confetti from 'react-confetti';
 import {useElementSize} from 'usehooks-ts';
+import './app.css';
 import {PumpkinRows} from './pumpkin-rows';
 import {WindowTooSmallBanner} from './window-too-small-banner';
 import {WonBanner} from './won-banner';
-import Confetti from 'react-confetti';
 
 /** Minimum stage width to be able to play the game. */
 const MIN_STAGE_WIDTH = 800;
@@ -15,6 +16,8 @@ enum GameStatus {
   INIT,
   /** Game is running. */
   PLAYING,
+  /** Player has just won and we're transitioning to WON state. */
+  TRANSITIONING_TO_WON,
   /** Player has won. */
   WON,
 }
@@ -23,7 +26,7 @@ enum GameStatus {
 type GameState =
   | {status: GameStatus.INIT}
   | {
-      status: GameStatus.PLAYING;
+      status: GameStatus.PLAYING | GameStatus.TRANSITIONING_TO_WON;
       /** Number of pumpkins displayed. */
       count: number;
       /** Text entered by the player. */
@@ -69,16 +72,11 @@ function App() {
 
     switch (gameState.status) {
       case GameStatus.INIT:
+      case GameStatus.TRANSITIONING_TO_WON:
         // Do nothing.
         break;
       case GameStatus.PLAYING: {
         let {inputValue, count} = gameState;
-        if (inputValue === count.toString()) {
-          // We already won, but getting another keypress while playing audio.
-          // So don't need to do anything.
-          break;
-        }
-
         if (/^[0-9]$/.test(e.key)) {
           inputValue += e.key;
         } else if (e.key === 'Backspace' && inputValue.length > 0) {
@@ -91,13 +89,22 @@ function App() {
         } else {
           break;
         }
-        setGameState({...gameState, inputValue});
         if (inputValue === count.toString()) {
+          setGameState({
+            ...gameState,
+            status: GameStatus.TRANSITIONING_TO_WON,
+            inputValue,
+          });
           const onAudioComplete = () => setGameState({status: GameStatus.WON});
           const audio = new Audio(`./success.mp3`);
           audio.addEventListener('ended', onAudioComplete);
           audio.addEventListener('error', onAudioComplete);
           audio.play();
+        } else {
+          setGameState({
+            ...gameState,
+            inputValue,
+          });
         }
         break;
       }
@@ -123,29 +130,38 @@ function App() {
         }}
         tabIndex={0}
         onKeyDown={onKeyDown}
-        className="d-flex flex-column justify-content-center align-items-center h-100"
+        className="stage d-flex flex-column justify-content-center align-items-center h-100"
       >
         {gameState.status === GameStatus.INIT &&
           stageWidth > 0 &&
           stageWidth < MIN_STAGE_WIDTH && <WindowTooSmallBanner />}
 
-        {gameState.status === GameStatus.PLAYING && (
+        {(gameState.status === GameStatus.PLAYING ||
+          gameState.status === GameStatus.TRANSITIONING_TO_WON) && (
           <>
-            <PumpkinRows count={gameState.count} />
+            <PumpkinRows
+              count={gameState.count}
+              className={`pumpkin-rows ${
+                gameState.status === GameStatus.TRANSITIONING_TO_WON
+                  ? 'opacity-50'
+                  : ''
+              }`}
+            />
             <div className="my-4" />
             <div
-              className={`h1 ${
-                gameState.inputValue === gameState.count.toString()
-                  ? 'text-danger'
+              className={`h1 number-display ${
+                gameState.status === GameStatus.TRANSITIONING_TO_WON
+                  ? 'text-danger number-display-won'
                   : ''
               }`}
             >
               {gameState.inputValue || '?'}
             </div>
-            {gameState.inputValue === gameState.count.toString() && (
-              <Confetti width={stageWidth - 5} height={stageHeight - 5} />
-            )}
           </>
+        )}
+        {(gameState.status === GameStatus.TRANSITIONING_TO_WON ||
+          gameState.status === GameStatus.WON) && (
+          <Confetti width={stageWidth - 5} height={stageHeight - 5} />
         )}
 
         {gameState.status === GameStatus.WON && <WonBanner />}

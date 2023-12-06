@@ -1,0 +1,11 @@
+.number-display {
+  transition: transform 2s ease-in-out;
+}
+
+.number-display-won {
+  transform: scale(8) translateY(-50%);
+}
+
+.pumpkin-rows {
+  transition: opacity 2s ease-in;
+}
