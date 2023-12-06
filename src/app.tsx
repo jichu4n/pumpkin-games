@@ -53,10 +53,6 @@ function App() {
     //   1. Game state is INIT and stage size is known for the first time. We
     //      should then transition into PLAYING state.
     //   2. The game is in PLAYING state and the stage size changes.
-    if (gameState.status === GameStatus.WON) {
-      return;
-    }
-
     if (gameState.status === GameStatus.INIT) {
       if (stageWidth > MIN_STAGE_WIDTH && stageHeight > 0) {
         setGameState(() => ({
@@ -75,7 +71,6 @@ function App() {
 
     switch (gameState.status) {
       case GameStatus.INIT:
-      case GameStatus.TRANSITIONING_TO_WON:
         // Do nothing.
         break;
       case GameStatus.PLAYING: {
@@ -119,6 +114,7 @@ function App() {
         }
         break;
       }
+      case GameStatus.TRANSITIONING_TO_WON:
       case GameStatus.WON:
         if (e.key === ' ') {
           window.location.reload();
@@ -170,9 +166,11 @@ function App() {
               {gameState.inputValue || '?'}
             </div>
 
-            <div className="fixed-bottom text-start px-2 py-1 text-uppercase fw-bold opacity-25">
-              press Space for hints
-            </div>
+            {gameState.status === GameStatus.PLAYING && (
+              <div className="fixed-bottom text-start px-2 py-1 text-uppercase fw-bold opacity-25">
+                press Space for hints
+              </div>
+            )}
           </>
         )}
         {(gameState.status === GameStatus.TRANSITIONING_TO_WON ||
