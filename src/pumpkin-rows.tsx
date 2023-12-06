@@ -33,7 +33,7 @@ export function PumpkinRows({count}: {count: number}) {
               .map((_, colId) => (
                 <div
                   key={`${rowId}-${colId}`}
-                  className="col-1 mx-2 my-2"
+                  className="col-1 mx-2 my-2 p-0"
                   style={{width: PUMPKIN_SIZE}}
                 >
                   <PumpkinSprite
