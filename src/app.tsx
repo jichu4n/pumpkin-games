@@ -3,7 +3,7 @@ import {KeyboardEvent, useEffect, useState} from 'react';
 import Confetti from 'react-confetti';
 import {useElementSize} from 'usehooks-ts';
 import './app.css';
-import {PumpkinRows} from './pumpkin-rows';
+import {LABEL_TYPES, LabelType, PumpkinRows} from './pumpkin-rows';
 import {WindowTooSmallBanner} from './window-too-small-banner';
 import {WonBanner} from './won-banner';
 
@@ -39,6 +39,9 @@ function App() {
   const [gameState, setGameState] = useState<GameState>({
     status: GameStatus.INIT,
   });
+
+  /** Current label display type. */
+  const [labelType, setLabelType] = useState<LabelType>(LabelType.NONE);
 
   /** The main game area element. */
   const [stageRef, {width: stageWidth, height: stageHeight}] =
@@ -82,10 +85,18 @@ function App() {
         } else if (e.key === 'Backspace' && inputValue.length > 0) {
           inputValue = inputValue.slice(0, -1);
         } else if (
-          ['Enter', 'Delete', 'Escape', ' '].includes(e.key) &&
+          ['Enter', 'Delete', 'Escape'].includes(e.key) &&
           inputValue.length > 0
         ) {
           inputValue = '';
+        } else if (e.key === ' ') {
+          setLabelType(
+            (labelType) =>
+              LABEL_TYPES[
+                (LABEL_TYPES.indexOf(labelType) + 1) % LABEL_TYPES.length
+              ]
+          );
+          break;
         } else {
           break;
         }
@@ -141,6 +152,7 @@ function App() {
           <>
             <PumpkinRows
               count={gameState.count}
+              labelType={labelType}
               className={`pumpkin-rows ${
                 gameState.status === GameStatus.TRANSITIONING_TO_WON
                   ? 'opacity-50'
@@ -156,6 +168,10 @@ function App() {
               }`}
             >
               {gameState.inputValue || '?'}
+            </div>
+
+            <div className="fixed-bottom text-start px-2 py-1 text-uppercase fw-bold opacity-25">
+              press Space for hints
             </div>
           </>
         )}
