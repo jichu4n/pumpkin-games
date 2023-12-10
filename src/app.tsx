@@ -5,7 +5,6 @@ import {useElementSize} from 'usehooks-ts';
 import './app.css';
 import {LABEL_TYPES, LabelType, PumpkinRows} from './pumpkin-rows';
 import {WindowTooSmallBanner} from './window-too-small-banner';
-import {WonBanner} from './won-banner';
 
 /** Minimum stage width to be able to play the game. */
 const MIN_STAGE_WIDTH = 800;
@@ -16,8 +15,6 @@ enum GameStatus {
   INIT,
   /** Game is running. */
   PLAYING,
-  /** Player has just won and we're transitioning to WON state. */
-  TRANSITIONING_TO_WON,
   /** Player has won. */
   WON,
 }
@@ -26,13 +23,12 @@ enum GameStatus {
 type GameState =
   | {status: GameStatus.INIT}
   | {
-      status: GameStatus.PLAYING | GameStatus.TRANSITIONING_TO_WON;
+      status: GameStatus.PLAYING | GameStatus.WON;
       /** Number of pumpkins displayed. */
       count: number;
       /** Text entered by the player. */
       inputValue: string;
-    }
-  | {status: GameStatus.WON};
+    };
 
 function App() {
   /** The current game state. */
@@ -47,12 +43,9 @@ function App() {
   const [stageRef, {width: stageWidth, height: stageHeight}] =
     useElementSize<HTMLDivElement>();
 
-  // Main game loop.
   useEffect(() => {
-    // We (re)initialize the game loop when:
-    //   1. Game state is INIT and stage size is known for the first time. We
-    //      should then transition into PLAYING state.
-    //   2. The game is in PLAYING state and the stage size changes.
+    // If game state is INIT, transition to PLAYING IFF initial rendering is
+    // complete and we've determined the stage is big enough.
     if (gameState.status === GameStatus.INIT) {
       if (stageWidth > MIN_STAGE_WIDTH && stageHeight > 0) {
         setGameState(() => ({
@@ -61,7 +54,6 @@ function App() {
           inputValue: '',
         }));
       }
-      return;
     }
   }, [gameState, stageWidth, stageHeight]);
 
@@ -98,13 +90,10 @@ function App() {
         if (inputValue === count.toString()) {
           setGameState({
             ...gameState,
-            status: GameStatus.TRANSITIONING_TO_WON,
+            status: GameStatus.WON,
             inputValue,
           });
-          const onAudioComplete = () => setGameState({status: GameStatus.WON});
           const audio = new Audio(`./success.mp3`);
-          audio.addEventListener('ended', onAudioComplete);
-          audio.addEventListener('error', onAudioComplete);
           audio.play();
         } else {
           setGameState({
@@ -114,7 +103,6 @@ function App() {
         }
         break;
       }
-      case GameStatus.TRANSITIONING_TO_WON:
       case GameStatus.WON:
         if (e.key === ' ') {
           window.location.reload();
@@ -144,41 +132,40 @@ function App() {
           stageWidth < MIN_STAGE_WIDTH && <WindowTooSmallBanner />}
 
         {(gameState.status === GameStatus.PLAYING ||
-          gameState.status === GameStatus.TRANSITIONING_TO_WON) && (
+          gameState.status === GameStatus.WON) && (
           <>
             <PumpkinRows
               count={gameState.count}
               labelType={labelType}
               className={`pumpkin-rows ${
-                gameState.status === GameStatus.TRANSITIONING_TO_WON
-                  ? 'opacity-50'
-                  : ''
+                gameState.status === GameStatus.WON ? 'opacity-75' : ''
               }`}
             />
             <div className="my-4" />
             <div
               className={`h1 number-display ${
-                gameState.status === GameStatus.TRANSITIONING_TO_WON
+                gameState.status === GameStatus.WON
                   ? 'text-danger number-display-won'
                   : ''
               }`}
             >
               {gameState.inputValue || '?'}
             </div>
-
-            {gameState.status === GameStatus.PLAYING && (
-              <div className="fixed-bottom text-start px-2 py-1 text-uppercase fw-bold opacity-25">
-                press Space for hints
-              </div>
-            )}
           </>
         )}
-        {(gameState.status === GameStatus.TRANSITIONING_TO_WON ||
-          gameState.status === GameStatus.WON) && (
+
+        <div className="fixed-bottom text-start px-2 py-1 text-uppercase fw-bold opacity-25">
+          {gameState.status === GameStatus.PLAYING && (
+            <span>press Space for hints</span>
+          )}
+          {gameState.status === GameStatus.WON && (
+            <span>press Space to play again</span>
+          )}
+        </div>
+
+        {gameState.status === GameStatus.WON && (
           <Confetti width={stageWidth - 5} height={stageHeight - 5} />
         )}
-
-        {gameState.status === GameStatus.WON && <WonBanner />}
       </div>
     </>
   );

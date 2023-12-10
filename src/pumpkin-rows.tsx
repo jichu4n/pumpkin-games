@@ -42,24 +42,23 @@ export function PumpkinRows({
     return styleIds;
   }, [numRows]);
   return (
-    <div className={`container-fluid ${className}`}>
+    <div className={`d-flex flex-column justify-content-start ${className}`}>
       {...Array(numRows)
         .fill(0)
         .map((_, rowId) => (
-          <div key={`${rowId}`} className="row justify-content-center">
+          <div key={`${rowId}`} className="d-inline-flex">
             {...Array(rowId === numRows - 1 ? count % 10 || 10 : 10)
               .fill(0)
               .map((_, colId) => (
                 <div
                   key={`${rowId}-${colId}`}
-                  className="col-1 mx-2 my-2 p-0"
+                  className={`col-1 mx-2 mb-4 p-0 ${colId === 4 ? 'me-4' : ''}`}
                   style={{width: PUMPKIN_SIZE}}
                 >
                   <PumpkinSprite
                     letter={
                       labelType === LabelType.ALL ||
-                      (labelType === LabelType.LAST_IN_ROW &&
-                        colId === 9)
+                      (labelType === LabelType.LAST_IN_ROW && colId === 9)
                         ? `${rowId * 10 + colId + 1}`
                         : ' '
                     }
