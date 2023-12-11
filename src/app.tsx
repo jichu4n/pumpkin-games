@@ -1,5 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {KeyboardEvent, useEffect, useState} from 'react';
+import {KeyboardEvent, useEffect, useMemo, useState} from 'react';
 import Confetti from 'react-confetti';
 import {useElementSize} from 'usehooks-ts';
 import './app.css';
@@ -57,6 +57,14 @@ function App() {
     }
   }, [gameState, stageWidth, stageHeight]);
 
+  // Sound effects.
+  const soundEffects = useMemo(
+    () => ({
+      WON: new Audio('./success.mp3'),
+    }),
+    []
+  );
+
   // Keyboard handler.
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     console.log(`onKeyDown: ${e.key}`);
@@ -93,8 +101,14 @@ function App() {
             status: GameStatus.WON,
             inputValue,
           });
-          const audio = new Audio(`./success.mp3`);
-          audio.play();
+          const soundEffect = soundEffects.WON;
+          soundEffect.load();
+          soundEffect.play().then(
+            () => {},
+            (e) => {
+              console.error(e);
+            }
+          );
         } else {
           setGameState({
             ...gameState,
@@ -105,7 +119,9 @@ function App() {
       }
       case GameStatus.WON:
         if (e.key === ' ') {
-          window.location.reload();
+          setGameState({
+            status: GameStatus.INIT,
+          });
         }
         break;
       default:
