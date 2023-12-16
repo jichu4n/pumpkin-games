@@ -73,3 +73,11 @@ body,
   height: 100%;
   width: 100%;
 }
+
+#root {
+  --primary-color: #ff6f00;
+}
+
+.dropdown-menu {
+  --bs-dropdown-link-active-bg: #eee;
+}

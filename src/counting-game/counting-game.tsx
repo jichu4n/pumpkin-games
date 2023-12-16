@@ -2,6 +2,8 @@ import {KeyboardEvent, useEffect, useMemo, useState} from 'react';
 import Confetti from 'react-confetti';
 import {Helmet} from 'react-helmet';
 import {useElementSize} from 'usehooks-ts';
+import {GameSelector} from '../common/game-selector';
+import {Toolbar} from '../common/toolbar';
 import {WindowTooSmallBanner} from '../common/window-too-small-banner';
 import './counting-game.css';
 import {LABEL_TYPES, LabelType, PumpkinRows} from './pumpkin-rows';
@@ -190,6 +192,10 @@ export function CountingGame() {
           <Confetti width={stageWidth - 5} height={stageHeight - 5} />
         )}
       </div>
+
+      <Toolbar>
+        <GameSelector />
+      </Toolbar>
     </>
   );
 }

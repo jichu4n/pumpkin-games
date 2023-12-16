@@ -7,6 +7,8 @@ import {PumpkinShelf} from './pumpkin-shelf';
 import {LetterTypes, useSettings} from './settings';
 import {SettingsButton} from './settings-ui';
 import {WonBanner} from './won-banner';
+import {Toolbar} from '../common/toolbar';
+import {GameSelector} from '../common/game-selector';
 
 /** State of active pumpkin on stage. */
 type PumpkinState = Required<PumpkinSpriteProps> & {
@@ -242,8 +244,8 @@ export function LetterGame() {
             md={6}
             className="h-100 overflow-hidden"
             style={{
-              borderLeft: '4px solid #FF6F00',
-              borderRight: '4px solid #FF6F00',
+              borderLeft: '4px solid var(--primary-color)',
+              borderRight: '4px solid var(--primary-color)',
             }}
           >
             {gameState.status === GameStatus.PLAYING && (
@@ -275,7 +277,10 @@ export function LetterGame() {
         stageWidth > 0 &&
         stageWidth < MIN_STAGE_WIDTH && <WindowTooSmallBanner />}
 
-      <SettingsButton />
+      <Toolbar>
+        <SettingsButton />
+        <GameSelector />
+      </Toolbar>
     </>
   );
 }

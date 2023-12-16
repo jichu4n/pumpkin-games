@@ -1,12 +1,12 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import {Navigate, RouterProvider, createBrowserRouter} from 'react-router-dom';
+import {Navigate, RouterProvider, createHashRouter} from 'react-router-dom';
 import {CountingGame} from './counting-game/counting-game';
-import {LetterGame} from './letter-game/letter-game';
 import './index.css';
+import {LetterGame} from './letter-game/letter-game';
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: '/',
     element: <Navigate to="/counting-game" />,
@@ -27,6 +27,6 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />;
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
