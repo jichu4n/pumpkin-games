@@ -77,9 +77,12 @@ export function LetterGame() {
         );
       case LetterTypes.NUMBER:
         return `${Math.floor(Math.random() * 10)}`;
-      default:
+      default: {
         const exhaustiveCheck: never = letterType;
-        throw new Error(`Unknown letter type: ${exhaustiveCheck}`);
+        throw new Error(
+          `Unknown letter type: ${JSON.stringify(exhaustiveCheck)}`
+        );
+      }
     }
   }, [letterTypes]);
 
@@ -199,6 +202,7 @@ export function LetterGame() {
         }
         soundEffect.load();
         soundEffect.play().then(
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
           () => {},
           (e) => {
             console.error(e);
@@ -206,16 +210,18 @@ export function LetterGame() {
         );
         break;
       }
-      case GameStatus.WON:
+      case GameStatus.WON: {
         if (e.key === ' ') {
           setGameState({status: GameStatus.INIT});
         }
         break;
-      default:
+      }
+      default: {
         const exhaustiveCheck: never = gameState;
         throw new Error(
           `Unknown game state: ${JSON.stringify(exhaustiveCheck)}`
         );
+      }
     }
   };
 

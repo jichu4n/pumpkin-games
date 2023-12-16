@@ -14,7 +14,7 @@ enum SettingsKeys {
 
 /** React hook for manipulating settings. */
 export function useSettings() {
-  const [letterTypes, setLetterTypes] = useLocalStorage<LetterTypes[]>(
+  const [letterTypes, setLetterTypes] = useLocalStorage<Array<LetterTypes>>(
     SettingsKeys.LETTER_TYPES,
     [LetterTypes.UPPERCASE]
   );
