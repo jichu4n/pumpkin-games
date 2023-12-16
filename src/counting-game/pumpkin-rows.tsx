@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import {PumpkinSprite} from './pumpkin-sprite';
+import {PumpkinSprite} from '../common/pumpkin-sprite';
 
 /** Number of pumpkin styles. See public/pumpkin-XX.png. */
 const NUM_PUMPKIN_STYLES = 11;

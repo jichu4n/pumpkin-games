@@ -1,11 +1,10 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
 import {KeyboardEvent, useEffect, useMemo, useState} from 'react';
 import Confetti from 'react-confetti';
-import {useElementSize} from 'usehooks-ts';
-import './app.css';
-import {LABEL_TYPES, LabelType, PumpkinRows} from './pumpkin-rows';
-import {WindowTooSmallBanner} from './window-too-small-banner';
 import {Helmet} from 'react-helmet';
+import {useElementSize} from 'usehooks-ts';
+import {WindowTooSmallBanner} from '../common/window-too-small-banner';
+import './counting-game.css';
+import {LABEL_TYPES, LabelType, PumpkinRows} from './pumpkin-rows';
 
 /** Minimum stage width to be able to play the game. */
 const MIN_STAGE_WIDTH = 800;
@@ -31,7 +30,7 @@ type GameState =
       inputValue: string;
     };
 
-function App() {
+export function CountingGame() {
   /** The current game state. */
   const [gameState, setGameState] = useState<GameState>({
     status: GameStatus.INIT,
@@ -194,5 +193,3 @@ function App() {
     </>
   );
 }
-
-export default App;
