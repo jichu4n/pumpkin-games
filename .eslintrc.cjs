@@ -28,5 +28,6 @@ module.exports = {
       'warn',
       {allowConstantExport: true},
     ],
+    '@typescript-eslint/array-type': ['error', {default: 'generic'}],
   },
 };

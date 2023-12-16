@@ -5,6 +5,7 @@ import {useElementSize} from 'usehooks-ts';
 import './app.css';
 import {LABEL_TYPES, LabelType, PumpkinRows} from './pumpkin-rows';
 import {WindowTooSmallBanner} from './window-too-small-banner';
+import {Helmet} from 'react-helmet';
 
 /** Minimum stage width to be able to play the game. */
 const MIN_STAGE_WIDTH = 800;
@@ -74,7 +75,8 @@ function App() {
         // Do nothing.
         break;
       case GameStatus.PLAYING: {
-        let {inputValue, count} = gameState;
+        let {inputValue} = gameState;
+        const {count} = gameState;
         if (/^[0-9]$/.test(e.key)) {
           inputValue += e.key;
         } else if (e.key === 'Backspace' && inputValue.length > 0) {
@@ -104,6 +106,7 @@ function App() {
           const soundEffect = soundEffects.WON;
           soundEffect.load();
           soundEffect.play().then(
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
             () => {},
             (e) => {
               console.error(e);
@@ -117,23 +120,28 @@ function App() {
         }
         break;
       }
-      case GameStatus.WON:
+      case GameStatus.WON: {
         if (e.key === ' ') {
           setGameState({
             status: GameStatus.INIT,
           });
         }
         break;
-      default:
+      }
+      default: {
         const exhaustiveCheck: never = gameState;
         throw new Error(
           `Unhandled game state: ${JSON.stringify(exhaustiveCheck)}`
         );
+      }
     }
   };
 
   return (
     <>
+      <Helmet>
+        <title>Pumpkin Counting Game</title>
+      </Helmet>
       <div
         ref={(el: HTMLDivElement) => {
           stageRef(el);
