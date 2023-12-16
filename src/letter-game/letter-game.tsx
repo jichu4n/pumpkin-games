@@ -5,7 +5,7 @@ import {PumpkinSprite, PumpkinSpriteProps} from '../common/pumpkin-sprite';
 import {WindowTooSmallBanner} from '../common/window-too-small-banner';
 import {PumpkinShelf} from './pumpkin-shelf';
 import {LetterTypes, useSettings} from './settings';
-import {SettingsButton} from './settings-button';
+import {SettingsButton} from './settings-ui';
 import {WonBanner} from './won-banner';
 
 /** State of active pumpkin on stage. */
