@@ -1,14 +1,15 @@
 import {KeyboardEvent, useCallback, useEffect, useMemo, useState} from 'react';
 import {Col, Container, Row} from 'react-bootstrap';
+import {Helmet} from 'react-helmet';
 import {useElementSize} from 'usehooks-ts';
+import {GameSelector} from '../common/game-selector';
 import {PumpkinSprite, PumpkinSpriteProps} from '../common/pumpkin-sprite';
+import {Toolbar} from '../common/toolbar';
 import {WindowTooSmallBanner} from '../common/window-too-small-banner';
 import {PumpkinShelf} from './pumpkin-shelf';
 import {LetterTypes, useSettings} from './settings';
 import {SettingsButton} from './settings-ui';
 import {WonBanner} from './won-banner';
-import {Toolbar} from '../common/toolbar';
-import {GameSelector} from '../common/game-selector';
 
 /** State of active pumpkin on stage. */
 type PumpkinState = Required<PumpkinSpriteProps> & {
@@ -229,6 +230,10 @@ export function LetterGame() {
 
   return (
     <>
+      <Helmet>
+        <title>Pumpkin Letter Game</title>
+      </Helmet>
+
       <Container
         className="w-100 mw-100 h-100 p-0 m-0"
         tabIndex={0}

@@ -1,10 +1,10 @@
 # Pumpkin Games
 
-Some simple games to I made to help my kids practice letters and numbers.
+Some simple games I made to help my kids practice letters and numbers 😄
 
 Play here: 👉 [**jichu4n.github.io/pumpkin-games**](https://jichu4n.github.io/pumpkin-games/) 👈
 
-Note that the games require a physical keyboard, so you'll need to use a laptop / desktop.
+Note that the games require a physical keyboard, so you'll need to use a laptop / desktop computer.
 
 ## Pumpking Counting Game
 

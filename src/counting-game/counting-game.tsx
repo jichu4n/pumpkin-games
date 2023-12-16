@@ -143,6 +143,7 @@ export function CountingGame() {
       <Helmet>
         <title>Pumpkin Counting Game</title>
       </Helmet>
+
       <div
         ref={(el: HTMLDivElement) => {
           stageRef(el);

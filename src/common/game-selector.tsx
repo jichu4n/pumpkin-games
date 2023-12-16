@@ -3,11 +3,11 @@ import Dropdown from 'react-bootstrap/Dropdown';
 
 const GAMES = Object.freeze([
   {
-    name: 'Counting Game',
+    name: 'Pumpkin Counting Game',
     route: 'counting-game',
   },
   {
-    name: 'Letter Game',
+    name: 'Pumpkin Letter Game',
     route: 'letter-game',
   },
 ]);
