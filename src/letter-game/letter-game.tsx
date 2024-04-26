@@ -20,7 +20,7 @@ type PumpkinState = Required<PumpkinSpriteProps> & {
 type CaughtPumpkinState = Pick<PumpkinSpriteProps, 'letter' | 'styleId'>;
 
 /** Number of pumpkin styles. See public/pumpkin-XX.png. */
-const NUM_PUMPKIN_STYLES = 11;
+const NUM_PUMPKIN_STYLES = 26;
 /** Default size of pumpkins. */
 const PUMPKIN_SIZE = 60;
 /** Number of pumpkins that need to be caught to win. */
