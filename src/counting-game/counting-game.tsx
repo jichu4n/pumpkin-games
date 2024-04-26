@@ -1,4 +1,4 @@
-import {KeyboardEvent, useEffect, useMemo, useState} from 'react';
+import {KeyboardEvent, useEffect, useMemo, useRef, useState} from 'react';
 import Confetti from 'react-confetti';
 import {Helmet} from 'react-helmet';
 import {useElementSize} from 'usehooks-ts';
@@ -7,6 +7,7 @@ import {Toolbar} from '../common/toolbar';
 import {WindowTooSmallBanner} from '../common/window-too-small-banner';
 import './counting-game.css';
 import {LABEL_TYPES, LabelType, PumpkinRows} from './pumpkin-rows';
+import {DEFAULT_WAIT_MS, Throttler} from '../common/throttler';
 
 /** Minimum stage width to be able to play the game. */
 const MIN_STAGE_WIDTH = 800;
@@ -67,9 +68,22 @@ export function CountingGame() {
     []
   );
 
+  // Throttler for keyboard handler.
+  const throttlerRef = useRef(
+    new Throttler({
+      waitMs(key: string) {
+        return key === 'Backspace'
+          ? Math.floor(DEFAULT_WAIT_MS / 2)
+          : DEFAULT_WAIT_MS;
+      },
+    })
+  );
+
   // Keyboard handler.
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    console.log(`onKeyDown: ${e.key}`);
+    if (!throttlerRef.current.shouldProceed(e.key)) {
+      return;
+    }
 
     switch (gameState.status) {
       case GameStatus.INIT:

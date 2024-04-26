@@ -1,15 +1,27 @@
-import {KeyboardEvent, useCallback, useEffect, useMemo, useState} from 'react';
+import {
+  KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {Col, Container, Row} from 'react-bootstrap';
 import {Helmet} from 'react-helmet';
 import {useElementSize} from 'usehooks-ts';
 import {GameSelector} from '../common/game-selector';
-import {PumpkinSprite, PumpkinSpriteProps, getRandomStyleId} from '../common/pumpkin-sprite';
+import {
+  PumpkinSprite,
+  PumpkinSpriteProps,
+  getRandomStyleId,
+} from '../common/pumpkin-sprite';
 import {Toolbar} from '../common/toolbar';
 import {WindowTooSmallBanner} from '../common/window-too-small-banner';
 import {PumpkinShelf} from './pumpkin-shelf';
 import {LetterTypes, useSettings} from './settings';
 import {SettingsButton} from './settings-ui';
 import {WonBanner} from './won-banner';
+import {Throttler} from '../common/throttler';
 
 /** State of active pumpkin on stage. */
 type PumpkinState = Required<PumpkinSpriteProps> & {
@@ -156,19 +168,38 @@ export function LetterGame() {
     }
   }, [gameState, stageWidth, stageHeight, speed, generateNewPumpkinState]);
 
+  // Whether we're currently playing sound.
+  const isSoundEffectPlaying = useRef(false);
+  // Handlers for sound effects.
+  const onSoundEffectPlaying = useCallback(() => {
+    isSoundEffectPlaying.current = true;
+  }, []);
+  const onSoundEffectEnded = useCallback(() => {
+    isSoundEffectPlaying.current = false;
+  }, []);
   // Sound effects.
-  const soundEffects = useMemo(
-    () => ({
+  const soundEffects = useMemo(() => {
+    const effects = {
       CAUGHT_PUMPKIN: new Audio('./tada.mp3'),
       WON: new Audio('./success.mp3'),
       WRONG_KEY: new Audio('./wrong.mp3'),
-    }),
-    []
-  );
+    };
+    for (const soundEffect of Object.values(effects)) {
+      soundEffect.onplaying = onSoundEffectPlaying;
+      soundEffect.onended = onSoundEffectEnded;
+      soundEffect.load();
+    }
+    return effects;
+  }, [onSoundEffectPlaying, onSoundEffectEnded]);
+
+  // Throttler for keyboard handler.
+  const throttlerRef = useRef(new Throttler());
 
   // Keyboard handler.
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    console.log(`onKeyDown: ${e.key}`);
+    if (!throttlerRef.current.shouldProceed(e.key)) {
+      return;
+    }
 
     switch (gameState.status) {
       case GameStatus.INIT:
@@ -201,14 +232,15 @@ export function LetterGame() {
         } else {
           soundEffect = soundEffects.WRONG_KEY;
         }
-        soundEffect.load();
-        soundEffect.play().then(
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
-          () => {},
-          (e) => {
-            console.error(e);
-          }
-        );
+        if (!isSoundEffectPlaying.current) {
+          soundEffect.play().then(
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            () => {},
+            (e) => {
+              console.error(e);
+            }
+          );
+        }
         break;
       }
       case GameStatus.WON: {
