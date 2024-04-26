@@ -13,9 +13,10 @@ import {GameSelector} from '../common/game-selector';
 import {DEFAULT_WAIT_MS, Throttler} from '../common/throttler';
 import {Toolbar} from '../common/toolbar';
 import {WindowTooSmallBanner} from '../common/window-too-small-banner';
+import {Maze, generateMaze} from './maze';
 
 /** Minimum stage width to be able to play the game. */
-const MIN_STAGE_WIDTH = 450;
+const MIN_STAGE_WIDTH = 650;
 
 /** Status of the game. */
 enum GameStatus {
@@ -27,10 +28,17 @@ enum GameStatus {
   WON,
 }
 
+const MAZE_WIDTH = 10;
+const MAZE_HEIGHT = 8;
+const CELL_SIZE = 65;
+const WALL_COLOR = '#606060';
+const WALL_WIDTH = 3;
+const WALL_STYLE = `${WALL_WIDTH}px solid ${WALL_COLOR}`;
+
 /** Current state of the game. */
 type GameState =
   | {status: GameStatus.INIT}
-  | {status: GameStatus.PLAYING}
+  | {status: GameStatus.PLAYING; maze: Maze}
   | {status: GameStatus.WON};
 
 export function MazeGame() {
@@ -49,12 +57,18 @@ export function MazeGame() {
   useEffect(() => {
     switch (gameState.status) {
       case GameStatus.INIT: {
+        console.log('Init!');
         if (stageWidth > MIN_STAGE_WIDTH && stageHeight > 0) {
-          setGameState({status: GameStatus.PLAYING});
+          console.log('set state');
+          setGameState({
+            status: GameStatus.PLAYING,
+            maze: generateMaze(MAZE_WIDTH, MAZE_HEIGHT),
+          });
         }
         return;
       }
       case GameStatus.PLAYING: {
+        console.log('Playing!');
         return;
       }
       case GameStatus.WON:
@@ -140,8 +154,52 @@ export function MazeGame() {
         ref={(el: HTMLDivElement) => el?.focus()}
         onKeyDown={onKeyDown}
       >
-        <Row className="h-100 g-0">
-          <Col className="d-none d-md-block"></Col>
+        <Row ref={stageRef} className="h-100 g-0 justify-content-center">
+          <Col xs="auto" className="d-flex align-items-center">
+            <div
+              style={{
+                display: 'inline-grid',
+                gridTemplateColumns: `repeat(${MAZE_WIDTH}, ${CELL_SIZE}px)`,
+                gridTemplateRows: `repeat(${MAZE_HEIGHT}, ${CELL_SIZE}px)`,
+              }}
+            >
+              {gameState.status === GameStatus.PLAYING &&
+                gameState.maze.map((row, y) =>
+                  row.map((cell, x) => (
+                    <div
+                      key={`${x}-${y}`}
+                      style={{
+                        boxSizing: 'border-box',
+                        ...(cell.topWall && {borderTop: WALL_STYLE}),
+                        ...(cell.leftWall && {borderLeft: WALL_STYLE}),
+                        ...(x === MAZE_WIDTH - 1 &&
+                          cell.rightWall && {borderRight: WALL_STYLE}),
+                        ...(y === MAZE_HEIGHT - 1 &&
+                          cell.bottomWall && {borderBottom: WALL_STYLE}),
+                      }}
+                    >
+                      {x > 0 &&
+                        y > 0 &&
+                        gameState.maze[y - 1][x].leftWall &&
+                        gameState.maze[y][x - 1].topWall &&
+                        !cell.topWall &&
+                        !cell.leftWall && (
+                          <div
+                            style={{
+                              position: 'relative',
+                              top: -0.5,
+                              left: -0.5,
+                              width: WALL_WIDTH,
+                              height: WALL_WIDTH,
+                              backgroundColor: WALL_COLOR,
+                            }}
+                          />
+                        )}
+                    </div>
+                  ))
+                )}
+            </div>
+          </Col>
         </Row>
       </Container>
 

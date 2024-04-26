@@ -1,13 +1,13 @@
 /** A maze cell. */
-export interface Cell {
-  top: boolean;
-  right: boolean;
-  bottom: boolean;
-  left: boolean;
+export interface BaseCell {
+  topWall: boolean;
+  rightWall: boolean;
+  bottomWall: boolean;
+  leftWall: boolean;
 }
 
 /** A maze is a two-dimensional matrix of cell values. */
-export type Maze = Array<Array<Cell>>;
+export type Maze<T extends BaseCell = BaseCell> = Array<Array<T>>;
 
 export function mazeToString(maze: Maze): string {
   const lines: Array<Array<string>> = [];
@@ -17,32 +17,35 @@ export function mazeToString(maze: Maze): string {
       '\t',
       ...row.map(
         (cell, x) =>
-          (cell.left || (y > 0 && maze[y - 1][x].left)
+          (cell.leftWall || (y > 0 && maze[y - 1][x].leftWall)
             ? '+'
-            : cell.top
+            : cell.topWall
               ? '-'
-              : ' ') + (cell.top ? '-' : ' ')
+              : ' ') + (cell.topWall ? '-' : ' ')
       ),
-      row[row.length - 1].right || (y > 0 && maze[y - 1][row.length - 1].right)
+      row[row.length - 1].rightWall ||
+      (y > 0 && maze[y - 1][row.length - 1].rightWall)
         ? '+'
-        : row[row.length - 1].top
+        : row[row.length - 1].topWall
           ? '-'
           : ' ',
     ];
     lines.push(line1);
     const line2 = [
       `${y + 1}\t`,
-      ...row.map((cell) => (cell.left ? '|' : ' ') + ' '),
-      row[row.length - 1].right ? '|' : ' ',
+      ...row.map((cell) => (cell.leftWall ? '|' : ' ') + ' '),
+      row[row.length - 1].rightWall ? '|' : ' ',
     ];
     lines.push(line2);
   }
   const lastRow = maze[maze.length - 1];
   const lastLine = [
     '\t',
-    ...lastRow.map((cell) => (cell.bottom ? (cell.left ? '+-' : '--') : '  ')),
-    lastRow[lastRow.length - 1].bottom
-      ? lastRow[lastRow.length - 1].right
+    ...lastRow.map((cell) =>
+      cell.bottomWall ? (cell.leftWall ? '+-' : '--') : '  '
+    ),
+    lastRow[lastRow.length - 1].bottomWall
+      ? lastRow[lastRow.length - 1].rightWall
         ? '+'
         : '-'
       : ' ',
@@ -76,17 +79,16 @@ export function generateMaze(width: number, height: number): Maze {
   });
 
   // Start with a maze where all walls are present.
-  const maze: Array<Array<Cell>> = Array(height)
+  const maze: Maze = Array(height)
     .fill(null)
     .map(() =>
       Array(width)
         .fill(null)
         .map(() => ({
-          isPartOfMaze: false,
-          top: true,
-          right: true,
-          bottom: true,
-          left: true,
+          topWall: true,
+          rightWall: true,
+          bottomWall: true,
+          leftWall: true,
         }))
     );
 
@@ -131,17 +133,17 @@ export function generateMaze(width: number, height: number): Maze {
           const {x: cx, y: cy} = indexToCoords(path[i]);
           const {x: nx, y: ny} = indexToCoords(path[i + 1]);
           if (cx < nx) {
-            maze[cy][cx].right = false;
-            maze[ny][nx].left = false;
+            maze[cy][cx].rightWall = false;
+            maze[ny][nx].leftWall = false;
           } else if (cx > nx) {
-            maze[cy][cx].left = false;
-            maze[ny][nx].right = false;
+            maze[cy][cx].leftWall = false;
+            maze[ny][nx].rightWall = false;
           } else if (cy < ny) {
-            maze[cy][cx].bottom = false;
-            maze[ny][nx].top = false;
+            maze[cy][cx].bottomWall = false;
+            maze[ny][nx].topWall = false;
           } else {
-            maze[cy][cx].top = false;
-            maze[ny][nx].bottom = false;
+            maze[cy][cx].topWall = false;
+            maze[ny][nx].bottomWall = false;
           }
           isPartOfMaze[path[i]] = true;
           cellsInMaze++;
@@ -165,11 +167,11 @@ export function generateMaze(width: number, height: number): Maze {
     }
   }
 
-  maze[0][0].left = false;
-  maze[height - 1][width - 1].right = false;
+  maze[0][0].leftWall = false;
+  maze[height - 1][width - 1].rightWall = false;
   console.log(mazeToString(maze) + '\n');
 
   return maze;
 }
 
-console.log(mazeToString(generateMaze(15, 15)));
+// console.log(mazeToString(generateMaze(15, 15)));
