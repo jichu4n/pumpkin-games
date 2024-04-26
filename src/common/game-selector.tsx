@@ -10,6 +10,10 @@ const GAMES = Object.freeze([
     name: 'Pumpkin Letter Game',
     route: 'letter-game',
   },
+  {
+    name: 'Pumpkin Maze Game',
+    route: 'maze-game',
+  },
 ]);
 
 const GameSelectorButton = forwardRef(function GameSelectorButton(

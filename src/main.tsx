@@ -5,6 +5,7 @@ import {Navigate, RouterProvider, createHashRouter} from 'react-router-dom';
 import {CountingGame} from './counting-game/counting-game';
 import './index.css';
 import {LetterGame} from './letter-game/letter-game';
+import {MazeGame} from './maze-game/maze-game';
 
 const router = createHashRouter([
   {
@@ -18,6 +19,10 @@ const router = createHashRouter([
   {
     path: '/letter-game',
     element: <LetterGame />,
+  },
+  {
+    path: '/maze-game',
+    element: <MazeGame />,
   },
   {
     path: '*',
