@@ -15,6 +15,13 @@ export interface PumpkinSpriteProps {
   styleId: number;
 }
 
+/** Number of pumpkin styles. See public/pumpkin-XX.png. */
+export const NUM_PUMPKIN_STYLES = 26;
+
+export function getRandomStyleId() {
+  return Math.floor(Math.random() * NUM_PUMPKIN_STYLES);
+}
+
 /** Default pumpkin size before scaling. */
 const PUMPKIN_SIZE = 512;
 

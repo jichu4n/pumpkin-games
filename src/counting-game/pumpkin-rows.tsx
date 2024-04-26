@@ -1,8 +1,6 @@
 import {useMemo} from 'react';
-import {PumpkinSprite} from '../common/pumpkin-sprite';
+import {PumpkinSprite, getRandomStyleId} from '../common/pumpkin-sprite';
 
-/** Number of pumpkin styles. See public/pumpkin-XX.png. */
-const NUM_PUMPKIN_STYLES = 26;
 /** Default size of pumpkins. */
 const PUMPKIN_SIZE = 60;
 
@@ -32,7 +30,7 @@ export function PumpkinRows({
     const styleIds: Array<number> = [];
     for (let i = 0; i < numRows; i++) {
       for (;;) {
-        const styleId = Math.floor(Math.random() * NUM_PUMPKIN_STYLES);
+        const styleId = getRandomStyleId();
         if (!styleIds.includes(styleId)) {
           styleIds.push(styleId);
           break;

@@ -3,7 +3,7 @@ import {Col, Container, Row} from 'react-bootstrap';
 import {Helmet} from 'react-helmet';
 import {useElementSize} from 'usehooks-ts';
 import {GameSelector} from '../common/game-selector';
-import {PumpkinSprite, PumpkinSpriteProps} from '../common/pumpkin-sprite';
+import {PumpkinSprite, PumpkinSpriteProps, getRandomStyleId} from '../common/pumpkin-sprite';
 import {Toolbar} from '../common/toolbar';
 import {WindowTooSmallBanner} from '../common/window-too-small-banner';
 import {PumpkinShelf} from './pumpkin-shelf';
@@ -19,8 +19,6 @@ type PumpkinState = Required<PumpkinSpriteProps> & {
 /** State of "caught" pumpkins on the shelf. */
 type CaughtPumpkinState = Pick<PumpkinSpriteProps, 'letter' | 'styleId'>;
 
-/** Number of pumpkin styles. See public/pumpkin-XX.png. */
-const NUM_PUMPKIN_STYLES = 26;
 /** Default size of pumpkins. */
 const PUMPKIN_SIZE = 60;
 /** Number of pumpkins that need to be caught to win. */
@@ -93,7 +91,7 @@ export function LetterGame() {
   const generateNewPumpkinState = useCallback(
     (): PumpkinState => ({
       letter: generateRandomLetter(),
-      styleId: Math.floor(Math.random() * NUM_PUMPKIN_STYLES),
+      styleId: getRandomStyleId(),
       x:
         Math.floor(Math.random() * (stageWidth - 4 * PUMPKIN_SIZE)) +
         2 * PUMPKIN_SIZE,
