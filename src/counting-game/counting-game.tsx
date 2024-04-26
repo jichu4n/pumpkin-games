@@ -1,7 +1,7 @@
 import {KeyboardEvent, useEffect, useMemo, useRef, useState} from 'react';
 import Confetti from 'react-confetti';
 import {Helmet} from 'react-helmet';
-import {useElementSize} from 'usehooks-ts';
+import {useResizeObserver} from 'usehooks-ts';
 import {GameSelector} from '../common/game-selector';
 import {Toolbar} from '../common/toolbar';
 import {WindowTooSmallBanner} from '../common/window-too-small-banner';
@@ -43,8 +43,10 @@ export function CountingGame() {
   const [labelType, setLabelType] = useState<LabelType>(LabelType.NONE);
 
   /** The main game area element. */
-  const [stageRef, {width: stageWidth, height: stageHeight}] =
-    useElementSize<HTMLDivElement>();
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const {width: stageWidth = 0, height: stageHeight = 0} = useResizeObserver({
+    ref: stageRef,
+  });
 
   useEffect(() => {
     // If game state is INIT, transition to PLAYING IFF initial rendering is
@@ -160,7 +162,7 @@ export function CountingGame() {
 
       <div
         ref={(el: HTMLDivElement) => {
-          stageRef(el);
+          stageRef.current = el ?? null;
           el?.focus();
         }}
         tabIndex={0}
