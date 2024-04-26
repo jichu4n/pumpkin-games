@@ -191,66 +191,69 @@ export function LetterGame() {
   );
 
   // Keyboard handler.
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (!throttlerRef.current.shouldProceed(e.key)) {
-      return;
-    }
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>) => {
+      if (!throttlerRef.current.shouldProceed(e.key)) {
+        return;
+      }
 
-    switch (gameState.status) {
-      case GameStatus.INIT:
-        // Do nothing
-        break;
-      case GameStatus.PLAYING: {
-        let soundEffect: HTMLAudioElement;
-        if (e.key.toUpperCase() === gameState.letter.toUpperCase()) {
-          const caughtPumpkins = [
-            ...gameState.caughtPumpkins,
-            {
-              letter: gameState.letter,
-              styleId: gameState.styleId,
-            },
-          ];
-          if (gameState.caughtPumpkins.length === NUM_PUMPKINS_TO_WIN - 1) {
-            soundEffect = soundEffects.WON;
-            setGameState({
-              status: GameStatus.WON,
-              caughtPumpkins,
-            });
+      switch (gameState.status) {
+        case GameStatus.INIT:
+          // Do nothing
+          break;
+        case GameStatus.PLAYING: {
+          let soundEffect: HTMLAudioElement;
+          if (e.key.toUpperCase() === gameState.letter.toUpperCase()) {
+            const caughtPumpkins = [
+              ...gameState.caughtPumpkins,
+              {
+                letter: gameState.letter,
+                styleId: gameState.styleId,
+              },
+            ];
+            if (gameState.caughtPumpkins.length === NUM_PUMPKINS_TO_WIN - 1) {
+              soundEffect = soundEffects.WON;
+              setGameState({
+                status: GameStatus.WON,
+                caughtPumpkins,
+              });
+            } else {
+              soundEffect = soundEffects.CAUGHT_PUMPKIN;
+              setGameState({
+                ...gameState,
+                ...generateNewPumpkinState(),
+                caughtPumpkins,
+              });
+            }
           } else {
-            soundEffect = soundEffects.CAUGHT_PUMPKIN;
-            setGameState({
-              ...gameState,
-              ...generateNewPumpkinState(),
-              caughtPumpkins,
-            });
+            soundEffect = soundEffects.WRONG_KEY;
           }
-        } else {
-          soundEffect = soundEffects.WRONG_KEY;
+          soundEffect.load();
+          soundEffect.play().then(
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            () => {},
+            (e) => {
+              console.error(e);
+            }
+          );
+          break;
         }
-        soundEffect.load();
-        soundEffect.play().then(
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
-          () => {},
-          (e) => {
-            console.error(e);
+        case GameStatus.WON: {
+          if (e.key === ' ') {
+            setGameState({status: GameStatus.INIT});
           }
-        );
-        break;
-      }
-      case GameStatus.WON: {
-        if (e.key === ' ') {
-          setGameState({status: GameStatus.INIT});
+          break;
         }
-        break;
+        default: {
+          const exhaustiveCheck: never = gameState;
+          throw new Error(
+            `Unknown game state: ${JSON.stringify(exhaustiveCheck)}`
+          );
+        }
       }
-      default: {
-        const exhaustiveCheck: never = gameState;
-        throw new Error(
-          `Unknown game state: ${JSON.stringify(exhaustiveCheck)}`
-        );
-      }
-    }
-  };
+    },
+    [gameState, soundEffects, generateNewPumpkinState]
+  );
 
   return (
     <>

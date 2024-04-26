@@ -1,4 +1,11 @@
-import {KeyboardEvent, useEffect, useMemo, useRef, useState} from 'react';
+import {
+  KeyboardEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import Confetti from 'react-confetti';
 import {Helmet} from 'react-helmet';
 import {useResizeObserver} from 'usehooks-ts';
@@ -82,77 +89,80 @@ export function CountingGame() {
   );
 
   // Keyboard handler.
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (!throttlerRef.current.shouldProceed(e.key)) {
-      return;
-    }
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>) => {
+      if (!throttlerRef.current.shouldProceed(e.key)) {
+        return;
+      }
 
-    switch (gameState.status) {
-      case GameStatus.INIT:
-        // Do nothing.
-        break;
-      case GameStatus.PLAYING: {
-        let {inputValue} = gameState;
-        const {count} = gameState;
-        if (/^[0-9]$/.test(e.key)) {
-          inputValue += e.key;
-        } else if (e.key === 'Backspace' && inputValue.length > 0) {
-          inputValue = inputValue.slice(0, -1);
-        } else if (
-          ['Enter', 'Delete', 'Escape'].includes(e.key) &&
-          inputValue.length > 0
-        ) {
-          inputValue = '';
-        } else if (e.key === ' ') {
-          setLabelType(
-            (labelType) =>
-              LABEL_TYPES[
-                (LABEL_TYPES.indexOf(labelType) + 1) % LABEL_TYPES.length
-              ]
-          );
+      switch (gameState.status) {
+        case GameStatus.INIT:
+          // Do nothing.
           break;
-        } else {
+        case GameStatus.PLAYING: {
+          let {inputValue} = gameState;
+          const {count} = gameState;
+          if (/^[0-9]$/.test(e.key)) {
+            inputValue += e.key;
+          } else if (e.key === 'Backspace' && inputValue.length > 0) {
+            inputValue = inputValue.slice(0, -1);
+          } else if (
+            ['Enter', 'Delete', 'Escape'].includes(e.key) &&
+            inputValue.length > 0
+          ) {
+            inputValue = '';
+          } else if (e.key === ' ') {
+            setLabelType(
+              (labelType) =>
+                LABEL_TYPES[
+                  (LABEL_TYPES.indexOf(labelType) + 1) % LABEL_TYPES.length
+                ]
+            );
+            break;
+          } else {
+            break;
+          }
+          if (inputValue === count.toString()) {
+            setGameState({
+              ...gameState,
+              status: GameStatus.WON,
+              inputValue,
+            });
+            const soundEffect = soundEffects.WON;
+            soundEffect.load();
+            soundEffect.play().then(
+              // eslint-disable-next-line @typescript-eslint/no-empty-function
+              () => {},
+              (e) => {
+                console.error(e);
+              }
+            );
+          } else {
+            setGameState({
+              ...gameState,
+              inputValue,
+            });
+          }
           break;
         }
-        if (inputValue === count.toString()) {
-          setGameState({
-            ...gameState,
-            status: GameStatus.WON,
-            inputValue,
-          });
-          const soundEffect = soundEffects.WON;
-          soundEffect.load();
-          soundEffect.play().then(
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            () => {},
-            (e) => {
-              console.error(e);
-            }
+        case GameStatus.WON: {
+          if (e.key === ' ') {
+            setGameState({
+              status: GameStatus.INIT,
+            });
+          }
+          break;
+        }
+        default: {
+          const exhaustiveCheck: never = gameState;
+          throw new Error(
+            `Unhandled game state: ${JSON.stringify(exhaustiveCheck)}`
           );
-        } else {
-          setGameState({
-            ...gameState,
-            inputValue,
-          });
         }
-        break;
       }
-      case GameStatus.WON: {
-        if (e.key === ' ') {
-          setGameState({
-            status: GameStatus.INIT,
-          });
-        }
-        break;
-      }
-      default: {
-        const exhaustiveCheck: never = gameState;
-        throw new Error(
-          `Unhandled game state: ${JSON.stringify(exhaustiveCheck)}`
-        );
-      }
-    }
-  };
+    },
+    [gameState, soundEffects]
+  );
 
   return (
     <>
