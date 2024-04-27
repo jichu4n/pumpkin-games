@@ -166,35 +166,27 @@ export function MazeGame() {
               {gameState.status === GameStatus.PLAYING &&
                 gameState.maze.map((row, y) =>
                   row.map((cell, x) => (
-                    <div
-                      key={`${x}-${y}`}
-                      style={{
-                        boxSizing: 'border-box',
-                        ...(cell.topWall && {borderTop: WALL_STYLE}),
-                        ...(cell.leftWall && {borderLeft: WALL_STYLE}),
-                        ...(x === MAZE_WIDTH - 1 &&
-                          cell.rightWall && {borderRight: WALL_STYLE}),
-                        ...(y === MAZE_HEIGHT - 1 &&
-                          cell.bottomWall && {borderBottom: WALL_STYLE}),
-                      }}
-                    >
-                      {x > 0 &&
-                        y > 0 &&
-                        gameState.maze[y - 1][x].leftWall &&
-                        gameState.maze[y][x - 1].topWall &&
-                        !cell.topWall &&
-                        !cell.leftWall && (
-                          <div
-                            style={{
-                              position: 'relative',
-                              top: -0.5,
-                              left: -0.5,
-                              width: WALL_WIDTH,
-                              height: WALL_WIDTH,
-                              backgroundColor: WALL_COLOR,
-                            }}
-                          />
-                        )}
+                    <div key={`${x}-${y}`} style={{position: 'relative'}}>
+                      {/*
+                       * We use a slightly larger inner div to draw borders so that the borders
+                       * are centered along the column / row lines.
+                       */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          boxSizing: 'border-box',
+                          width: CELL_SIZE + WALL_WIDTH / 2,
+                          height: CELL_SIZE + WALL_WIDTH / 2,
+                          top: -(WALL_WIDTH / 2),
+                          left: -(WALL_WIDTH / 2),
+                          ...(cell.topWall && {borderTop: WALL_STYLE}),
+                          ...(cell.leftWall && {borderLeft: WALL_STYLE}),
+                          ...(x === MAZE_WIDTH - 1 &&
+                            cell.rightWall && {borderRight: WALL_STYLE}),
+                          ...(y === MAZE_HEIGHT - 1 &&
+                            cell.bottomWall && {borderBottom: WALL_STYLE}),
+                        }}
+                      />
                     </div>
                   ))
                 )}
