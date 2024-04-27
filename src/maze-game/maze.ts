@@ -64,25 +64,25 @@ export interface CellCoords {
 export type CellIndex = number;
 
 /** Generate a maze using Wilson's algorithm, i.e. loop-erased random walk. */
-export function generateMaze(width: number, height: number): Maze {
-  if (width <= 1 || height < 1) {
+export function generateMaze(mazeWidth: number, mazeHeight: number): Maze {
+  if (mazeWidth <= 1 || mazeHeight < 1) {
     throw new Error('Width and height must be at least 1.');
   }
 
   /** Convert coordinates of a cell to a numeric index. */
   const coordsToIndex = (coords: CellCoords): CellIndex =>
-    coords.y * width + coords.x;
+    coords.y * mazeWidth + coords.x;
   /** Convert numeric index of a cell to coordinates. */
   const indexToCoords = (index: CellIndex): CellCoords => ({
-    x: index % width,
-    y: Math.floor(index / width),
+    x: index % mazeWidth,
+    y: Math.floor(index / mazeWidth),
   });
 
   // Start with a maze where all walls are present.
-  const maze: Maze = Array(height)
+  const maze: Maze = Array(mazeHeight)
     .fill(null)
     .map(() =>
-      Array(width)
+      Array(mazeWidth)
         .fill(null)
         .map(() => ({
           topWall: true,
@@ -93,14 +93,16 @@ export function generateMaze(width: number, height: number): Maze {
     );
 
   // Whether the cell is part of the maze.
-  const isPartOfMaze = Array(height * width).fill(false) as Array<boolean>;
+  const isPartOfMaze = Array(mazeHeight * mazeWidth).fill(
+    false
+  ) as Array<boolean>;
   // Mark the top left cell as part of the maze.
   isPartOfMaze[0] = true;
   let cellsInMaze = 1;
 
-  while (cellsInMaze < width * height) {
+  while (cellsInMaze < mazeWidth * mazeHeight) {
     // Pick a random cell that is not part of the maze.
-    let k = Math.floor(Math.random() * (width * height - cellsInMaze));
+    let k = Math.floor(Math.random() * (mazeWidth * mazeHeight - cellsInMaze));
     let startIndex = 0;
     do {
       do {
@@ -120,7 +122,8 @@ export function generateMaze(width: number, height: number): Maze {
         {x, y: y - 1},
         {x, y: y + 1},
       ].filter(
-        ({x: nx, y: ny}) => nx >= 0 && nx < width && ny >= 0 && ny < height
+        ({x: nx, y: ny}) =>
+          nx >= 0 && nx < mazeWidth && ny >= 0 && ny < mazeHeight
       );
       const nextCoords =
         neighbors[Math.floor(Math.random() * neighbors.length)];
@@ -168,10 +171,8 @@ export function generateMaze(width: number, height: number): Maze {
   }
 
   maze[0][0].leftWall = false;
-  maze[height - 1][width - 1].rightWall = false;
+  maze[mazeHeight - 1][mazeWidth - 1].rightWall = false;
   console.log(mazeToString(maze) + '\n');
 
   return maze;
 }
-
-// console.log(mazeToString(generateMaze(15, 15)));

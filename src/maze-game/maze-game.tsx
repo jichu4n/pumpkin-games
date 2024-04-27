@@ -18,6 +18,7 @@ import {WindowTooSmallBanner} from '../common/window-too-small-banner';
 import {CellCoords, CellIndex, Maze, generateMaze} from './maze';
 import {PumpkinSprite} from '../common/pumpkin-sprite';
 import {PumpkinShelf} from '../common/pumpkin-shelf';
+import {useSettings} from './settings';
 
 /** Minimum stage width to be able to play the game. */
 const MIN_STAGE_WIDTH = 650;
@@ -34,20 +35,14 @@ enum GameStatus {
   LOST,
 }
 
-const MAZE_WIDTH = 10;
-const MAZE_HEIGHT = 8;
 const CELL_SIZE = 65;
 const SPRITE_SIZE = CELL_SIZE * 0.7;
 const WALL_COLOR = '#606060';
 const WALL_WIDTH = 3;
 const WALL_STYLE = `${WALL_WIDTH}px solid ${WALL_COLOR}`;
-const NUM_PUMPKINS = 5;
 
 /** State of a pumpkin in the maze. */
 type PumpkinInMaze = CellCoords & {styleId: number};
-
-/** Convert coords to index. */
-const coordsToIndex = ({x, y}: CellCoords): CellIndex => y * MAZE_WIDTH + x;
 
 /** Current state of the game. */
 type GameState =
@@ -72,6 +67,29 @@ export function MazeGame() {
     ref: stageRef,
   });
 
+  const {mazeWidth, mazeHeight, numPumpkins, coordsToIndex} = useSettings();
+
+  const generatePumpkins = useCallback((): Map<CellIndex, PumpkinInMaze> => {
+    const pumpkins = new Map<CellIndex, PumpkinInMaze>();
+    for (let i = 0; i < numPumpkins; ++i) {
+      for (;;) {
+        const x = Math.floor(Math.random() * mazeWidth);
+        const y = Math.floor(Math.random() * mazeHeight);
+        const index = coordsToIndex({x, y});
+        if (
+          (x === 0 && y === 0) ||
+          (x === mazeWidth - 1 && y === mazeHeight - 1) ||
+          pumpkins.has(index)
+        ) {
+          continue;
+        }
+        pumpkins.set(index, {x, y, styleId: getRandomStyleId()});
+        break;
+      }
+    }
+    return pumpkins;
+  }, [coordsToIndex, mazeHeight, mazeWidth, numPumpkins]);
+
   // Main game loop.
   useEffect(() => {
     switch (gameState.status) {
@@ -81,7 +99,7 @@ export function MazeGame() {
           console.log('set state');
           setGameState({
             status: GameStatus.PLAYING,
-            maze: generateMaze(MAZE_WIDTH, MAZE_HEIGHT),
+            maze: generateMaze(mazeWidth, mazeHeight),
             avatarCoords: {x: 0, y: 0},
             pumpkinsInMaze: generatePumpkins(),
             capturedPumpkins: [],
@@ -104,7 +122,14 @@ export function MazeGame() {
         );
       }
     }
-  }, [gameState, stageWidth, stageHeight]);
+  }, [
+    gameState,
+    stageWidth,
+    stageHeight,
+    mazeWidth,
+    mazeHeight,
+    generatePumpkins,
+  ]);
 
   // Sound effects.
   const soundEffects = useMemo(() => {
@@ -141,25 +166,35 @@ export function MazeGame() {
           const {avatarCoords, maze} = gameState;
           const cell = maze[avatarCoords.y][avatarCoords.x];
           const newAvatarCoords = {...avatarCoords};
+          let hasWon = false;
           switch (e.key) {
             case 'ArrowUp':
+              e.preventDefault();
               if (!cell.topWall && avatarCoords.y > 0) {
                 --newAvatarCoords.y;
               }
               break;
             case 'ArrowDown':
-              if (!cell.bottomWall && avatarCoords.y < MAZE_HEIGHT - 1) {
+              e.preventDefault();
+              if (!cell.bottomWall && avatarCoords.y < mazeHeight - 1) {
                 ++newAvatarCoords.y;
               }
               break;
             case 'ArrowLeft':
+              e.preventDefault();
               if (!cell.leftWall && avatarCoords.x > 0) {
                 --newAvatarCoords.x;
               }
               break;
             case 'ArrowRight':
-              if (!cell.rightWall && avatarCoords.x < MAZE_WIDTH - 1) {
+              e.preventDefault();
+              if (!cell.rightWall && avatarCoords.x < mazeWidth - 1) {
                 ++newAvatarCoords.x;
+              } else if (
+                avatarCoords.x === mazeWidth - 1 &&
+                avatarCoords.y === mazeHeight - 1
+              ) {
+                hasWon = true;
               }
               break;
             default:
@@ -167,7 +202,8 @@ export function MazeGame() {
           }
           if (
             newAvatarCoords.x !== avatarCoords.x ||
-            newAvatarCoords.y !== avatarCoords.y
+            newAvatarCoords.y !== avatarCoords.y ||
+            hasWon
           ) {
             setGameState((gameState) => ({
               ...gameState,
@@ -195,10 +231,7 @@ export function MazeGame() {
               );
               soundEffect = soundEffects.CAUGHT_PUMPKIN;
             }
-            if (
-              newAvatarCoords.x === MAZE_WIDTH - 1 &&
-              newAvatarCoords.y === MAZE_HEIGHT - 1
-            ) {
+            if (hasWon) {
               if (gameState.pumpkinsInMaze.size === 0) {
                 setGameState((gameState) =>
                   gameState.status === GameStatus.PLAYING
@@ -250,7 +283,10 @@ export function MazeGame() {
       }
     },
     [
+      coordsToIndex,
       gameState,
+      mazeHeight,
+      mazeWidth,
       soundEffects.CAUGHT_PUMPKIN,
       soundEffects.LOST,
       soundEffects.WON,
@@ -277,8 +313,8 @@ export function MazeGame() {
             <div
               style={{
                 display: 'inline-grid',
-                gridTemplateColumns: `repeat(${MAZE_WIDTH}, ${CELL_SIZE}px)`,
-                gridTemplateRows: `repeat(${MAZE_HEIGHT}, ${CELL_SIZE}px)`,
+                gridTemplateColumns: `repeat(${mazeWidth}, ${CELL_SIZE}px)`,
+                gridTemplateRows: `repeat(${mazeHeight}, ${CELL_SIZE}px)`,
               }}
             >
               {(gameState.status === GameStatus.PLAYING ||
@@ -306,9 +342,9 @@ export function MazeGame() {
                             left: -(WALL_WIDTH / 2),
                             ...(cell.topWall && {borderTop: WALL_STYLE}),
                             ...(cell.leftWall && {borderLeft: WALL_STYLE}),
-                            ...(x === MAZE_WIDTH - 1 &&
+                            ...(x === mazeWidth - 1 &&
                               cell.rightWall && {borderRight: WALL_STYLE}),
-                            ...(y === MAZE_HEIGHT - 1 &&
+                            ...(y === mazeHeight - 1 &&
                               cell.bottomWall && {borderBottom: WALL_STYLE}),
                           }}
                         />
@@ -328,10 +364,37 @@ export function MazeGame() {
                             />
                           )
                         }
-                        {gameState.avatarCoords.x === x &&
-                          gameState.avatarCoords.y === y && (
-                            <AvatarSprite size={SPRITE_SIZE} />
-                          )}
+                        {
+                          // Draw avatar
+                          gameState.avatarCoords.x === x &&
+                            gameState.avatarCoords.y === y && (
+                              <AvatarSprite
+                                size={SPRITE_SIZE}
+                                style={{
+                                  position: 'absolute',
+                                  ...((gameState.status === GameStatus.WON ||
+                                    gameState.status === GameStatus.LOST) && {
+                                    marginLeft: CELL_SIZE,
+                                  }),
+                                }}
+                              />
+                            )
+                        }
+                        {
+                          // Draw goal next to last element
+                          x === mazeWidth - 1 && y === mazeHeight - 1 && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                left: CELL_SIZE * 1.5,
+                                backgroundImage: 'url(./goal.png)',
+                                backgroundSize: 'contain',
+                                width: SPRITE_SIZE * 0.8,
+                                height: SPRITE_SIZE * 0.8,
+                              }}
+                            />
+                          )
+                        }
                       </div>
                     ))
                   )}
@@ -391,27 +454,6 @@ export function MazeGame() {
   );
 }
 
-function generatePumpkins(): Map<CellIndex, PumpkinInMaze> {
-  const pumpkins = new Map<CellIndex, PumpkinInMaze>();
-  for (let i = 0; i < NUM_PUMPKINS; ++i) {
-    for (;;) {
-      const x = Math.floor(Math.random() * MAZE_WIDTH);
-      const y = Math.floor(Math.random() * MAZE_HEIGHT);
-      const index = coordsToIndex({x, y});
-      if (
-        (x === 0 && y === 0) ||
-        (x === MAZE_WIDTH - 1 && y === MAZE_HEIGHT - 1) ||
-        pumpkins.has(index)
-      ) {
-        continue;
-      }
-      pumpkins.set(index, {x, y, styleId: getRandomStyleId()});
-      break;
-    }
-  }
-  return pumpkins;
-}
-
 export function AvatarSprite({
   size,
   style,
@@ -420,12 +462,13 @@ export function AvatarSprite({
   size: number;
   style?: React.CSSProperties;
 }) {
+  const {avatar} = useSettings();
   return (
     <div
       style={{
         height: size,
         width: size,
-        backgroundImage: `url(./boy.png)`,
+        backgroundImage: `url(${avatar?.src})`,
         backgroundSize: 'contain',
         ...style,
       }}
