@@ -72,7 +72,7 @@ export function CountingGame() {
   // Sound effects.
   const soundEffects = useMemo(
     () => ({
-      WON: new Audio('./success.mp3'),
+      WON: new Audio('./success-1.mp3'),
     }),
     []
   );

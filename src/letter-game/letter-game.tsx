@@ -17,7 +17,7 @@ import {
 } from '../common/pumpkin-sprite';
 import {Toolbar} from '../common/toolbar';
 import {WindowTooSmallBanner} from '../common/window-too-small-banner';
-import {PumpkinShelf} from './pumpkin-shelf';
+import {PumpkinShelf} from '../common/pumpkin-shelf';
 import {LetterTypes, useSettings} from './settings';
 import {SettingsButton} from './settings-ui';
 import {WonBanner} from './won-banner';
@@ -174,7 +174,7 @@ export function LetterGame() {
   const soundEffects = useMemo(() => {
     const soundEffects = {
       CAUGHT_PUMPKIN: new Audio('./tada.mp3'),
-      WON: new Audio('./success.mp3'),
+      WON: new Audio('./success-1.mp3'),
       WRONG_KEY: new Audio('./wrong.mp3'),
     };
     for (const soundEffect of Object.values(soundEffects)) {
@@ -295,10 +295,8 @@ export function LetterGame() {
             {(gameState.status === GameStatus.PLAYING ||
               gameState.status === GameStatus.WON) && (
               <PumpkinShelf
-                pumpkins={gameState.caughtPumpkins.map((pumpkin) => ({
-                  ...pumpkin,
-                  size: PUMPKIN_SIZE,
-                }))}
+                pumpkins={gameState.caughtPumpkins}
+                size={PUMPKIN_SIZE}
               />
             )}
           </Col>

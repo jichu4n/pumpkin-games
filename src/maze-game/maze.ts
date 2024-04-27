@@ -55,13 +55,13 @@ export function mazeToString(maze: Maze): string {
 }
 
 /** Coordinates of a cell. */
-interface CellCoords {
+export interface CellCoords {
   x: number;
   y: number;
 }
 
 /** Cell index, representing y * width + x. */
-type CellIndex = number;
+export type CellIndex = number;
 
 /** Generate a maze using Wilson's algorithm, i.e. loop-erased random walk. */
 export function generateMaze(width: number, height: number): Maze {
