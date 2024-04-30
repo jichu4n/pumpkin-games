@@ -297,19 +297,33 @@ export function MazeGame() {
     setGameState({status: GameStatus.INIT});
   }, []);
 
+  const grabFocus = useCallback(() => {
+    if (!stageRef.current) {
+      return;
+    }
+    if (document.activeElement !== stageRef.current) {
+      console.log('Grab focus');
+      stageRef.current.focus();
+      setTimeout(grabFocus, 50);
+    }
+  }, []);
+
   return (
     <>
       <Helmet>
         <title>Pumpkin Maze Game</title>
       </Helmet>
 
-      <Container
-        className="w-100 mw-100 h-100 p-0 m-0"
-        tabIndex={0}
-        ref={(el: HTMLDivElement) => el?.focus()}
-        onKeyDown={onKeyDown}
-      >
-        <Row ref={stageRef} className="h-100 g-0 justify-content-center">
+      <Container className="w-100 mw-100 h-100 p-0 m-0">
+        <Row
+          ref={(el: HTMLDivElement) => {
+            stageRef.current = el;
+            grabFocus();
+          }}
+          className="h-100 g-0 justify-content-center"
+          tabIndex={0}
+          onKeyDown={onKeyDown}
+        >
           <Col
             xs="auto"
             className="d-flex flex-column align-items-center justify-content-center"
@@ -404,7 +418,6 @@ export function MazeGame() {
                   )}
                 </>
               )}
-              ￼
             </div>
             {(gameState.status === GameStatus.PLAYING ||
               gameState.status === GameStatus.WON ||
@@ -453,7 +466,10 @@ export function MazeGame() {
         stageWidth < MIN_STAGE_WIDTH && <WindowTooSmallBanner />}
 
       <Toolbar>
-        <SettingsButton onSettingsChange={onSettingsChange} />
+        <SettingsButton
+          onSettingsChange={onSettingsChange}
+          onClose={grabFocus}
+        />
         <GameSelector />
       </Toolbar>
     </>

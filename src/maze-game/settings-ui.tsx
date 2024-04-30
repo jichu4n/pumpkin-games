@@ -88,7 +88,7 @@ export function SettingsDialog({
             <Form.Label>Maze width</Form.Label>
             <Form.Range
               min={5}
-              max={10}
+              max={15}
               value={newMazeWidth}
               onChange={(e) => setNewMazeWidth(e.target.valueAsNumber)}
             />
@@ -97,7 +97,7 @@ export function SettingsDialog({
             <Form.Label>Maze height</Form.Label>
             <Form.Range
               min={5}
-              max={10}
+              max={15}
               value={newMazeHeight}
               onChange={(e) => setNewMazeHeight(e.target.valueAsNumber)}
             />
@@ -125,8 +125,10 @@ export function SettingsDialog({
 /** React component for the settings button. */
 export function SettingsButton({
   onSettingsChange,
+  onClose,
 }: {
   onSettingsChange: () => void;
+  onClose: () => void;
 }) {
   const [isSettingsShown, setIsSettingsShown] = useState(false);
 
@@ -138,7 +140,12 @@ export function SettingsButton({
 
       <SettingsDialog
         isShown={isSettingsShown}
-        setIsShown={setIsSettingsShown}
+        setIsShown={(isShown: boolean) => {
+          setIsSettingsShown(isShown);
+          if (!isShown) {
+            onClose();
+          }
+        }}
         onSettingsChange={onSettingsChange}
       />
     </>
