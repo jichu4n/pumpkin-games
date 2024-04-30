@@ -1,4 +1,3 @@
-import Confetti from 'react-confetti';
 import {
   KeyboardEvent,
   useCallback,
@@ -8,17 +7,18 @@ import {
   useState,
 } from 'react';
 import {Col, Container, Row} from 'react-bootstrap';
+import Confetti from 'react-confetti';
 import {Helmet} from 'react-helmet';
 import {useResizeObserver} from 'usehooks-ts';
 import {GameSelector} from '../common/game-selector';
-import {getRandomStyleId} from '../common/pumpkin-sprite';
+import {PumpkinShelf} from '../common/pumpkin-shelf';
+import {PumpkinSprite, getRandomStyleId} from '../common/pumpkin-sprite';
 import {Throttler} from '../common/throttler';
 import {Toolbar} from '../common/toolbar';
 import {WindowTooSmallBanner} from '../common/window-too-small-banner';
 import {CellCoords, CellIndex, Maze, generateMaze} from './maze';
-import {PumpkinSprite} from '../common/pumpkin-sprite';
-import {PumpkinShelf} from '../common/pumpkin-shelf';
 import {useSettings} from './settings';
+import {SettingsButton} from './settings-ui';
 
 /** Minimum stage width to be able to play the game. */
 const MIN_STAGE_WIDTH = 650;
@@ -293,6 +293,10 @@ export function MazeGame() {
     ]
   );
 
+  const onSettingsChange = useCallback(() => {
+    setGameState({status: GameStatus.INIT});
+  }, []);
+
   return (
     <>
       <Helmet>
@@ -400,6 +404,7 @@ export function MazeGame() {
                   )}
                 </>
               )}
+              ￼
             </div>
             {(gameState.status === GameStatus.PLAYING ||
               gameState.status === GameStatus.WON ||
@@ -448,6 +453,7 @@ export function MazeGame() {
         stageWidth < MIN_STAGE_WIDTH && <WindowTooSmallBanner />}
 
       <Toolbar>
+        <SettingsButton onSettingsChange={onSettingsChange} />
         <GameSelector />
       </Toolbar>
     </>
