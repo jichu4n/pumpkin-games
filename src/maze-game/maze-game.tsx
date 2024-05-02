@@ -435,7 +435,12 @@ export function MazeGame() {
       </Container>
 
       {gameState.status === GameStatus.WON && (
-        <Confetti width={stageWidth - 5} height={stageHeight - 5} />
+        <>
+          <Confetti width={stageWidth - 5} height={stageHeight - 5} />
+          <div className="fixed-bottom text-start px-2 py-1 text-uppercase fw-bold opacity-25">
+            press Space to play again
+          </div>
+        </>
       )}
 
       {gameState.status === GameStatus.LOST && (
