@@ -30,3 +30,16 @@ How to play:
 - When you see a pumpkin appear, press the corresponding letter on the keyboard before it disappears. This "captures" the pumpkin and adds it to your shelf, displayed on the right.
 - When you've captured 12 pumpkins, you win! You can press space to restart the game.
 - Click the icon in the top right to change game settings like speed and uppercase / lowercase letters.
+
+## Pumpkin Maze Game
+
+![Screenshot](./screenshots/maze-game-1.png)
+
+Practice directions on a 2D surface!
+
+How to play:
+
+- Use arrow keys on the keyboard to navigate the maze.
+- To win, you must capture all the pumpkins in the maze and then exit through the bottom right corner.
+- Press space to restart the game once won / lost.
+- Click the gear icon in the top right to change game settings like the avatar, maze dimensions, and number of pumpkins.
