@@ -4,6 +4,8 @@ enum SettingsKeys {
   MAZE_WIDTH = 'maze-game/width',
   MAZE_HEIGHT = 'maze-game/height',
   NUM_PUMPKINS = 'maze-game/numPumpkins',
+  NUM_MONSTERS = 'maze-game/numMonsters',
+  MONSTER_SPEED = 'maze-game/monsterSpeed',
   AVATAR = 'maze-game/avatar',
 }
 
@@ -40,6 +42,14 @@ export function useSettings() {
     SettingsKeys.NUM_PUMPKINS,
     4
   );
+  const [numMonsters, setNumMonsters] = useLocalStorage<number>(
+    SettingsKeys.NUM_MONSTERS,
+    1
+  );
+  const [monsterSpeed, setMonsterSpeed] = useLocalStorage<number>(
+    SettingsKeys.MONSTER_SPEED,
+    1
+  );
   const [avatarKey, setAvatarKey] = useLocalStorage<AvatarKey>(
     SettingsKeys.AVATAR,
     Avatars[2].key
@@ -54,6 +64,10 @@ export function useSettings() {
     setMazeHeight,
     numPumpkins,
     setNumPumpkins,
+    numMonsters,
+    setNumMonsters,
+    monsterSpeed,
+    setMonsterSpeed,
     avatarKey,
     setAvatarKey,
     avatar,

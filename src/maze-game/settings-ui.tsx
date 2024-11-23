@@ -22,12 +22,18 @@ export function SettingsDialog({
     setMazeHeight,
     numPumpkins,
     setNumPumpkins,
+    numMonsters,
+    setNumMonsters,
+    monsterSpeed,
+    setMonsterSpeed,
     avatarKey,
     setAvatarKey,
   } = useSettings();
   const [newMazeWidth, setNewMazeWidth] = useState(mazeWidth);
   const [newMazeHeight, setNewMazeHeight] = useState(mazeHeight);
   const [newNumPumpkins, setNewNumPumpkins] = useState(numPumpkins);
+  const [newNumMonsters, setNewNumMonsters] = useState(numMonsters);
+  const [newMonsterSpeed, setNewMonsterSpeed] = useState(monsterSpeed);
 
   const hide = useCallback(() => setIsShown(false), [setIsShown]);
   const onDone = useCallback(() => {
@@ -44,6 +50,13 @@ export function SettingsDialog({
       setNumPumpkins(newNumPumpkins);
       hasSettingsChanged = true;
     }
+    if (newNumMonsters !== numMonsters) {
+      setNumMonsters(newNumMonsters);
+      hasSettingsChanged = true;
+    }
+    if (newMonsterSpeed !== monsterSpeed) {
+      setMonsterSpeed(newMonsterSpeed);
+    }
     if (hasSettingsChanged) {
       onSettingsChange();
     }
@@ -55,10 +68,15 @@ export function SettingsDialog({
     mazeHeight,
     newNumPumpkins,
     numPumpkins,
+    newNumMonsters,
+    numMonsters,
+    newMonsterSpeed,
+    monsterSpeed,
     hide,
     setMazeWidth,
     setMazeHeight,
     setNumPumpkins,
+    setNumMonsters,
     onSettingsChange,
   ]);
 
@@ -109,6 +127,24 @@ export function SettingsDialog({
               max={10}
               value={newNumPumpkins}
               onChange={(e) => setNewNumPumpkins(e.target.valueAsNumber)}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Monsters</Form.Label>
+            <Form.Range
+              min={0}
+              max={3}
+              value={newNumMonsters}
+              onChange={(e) => setNewNumMonsters(e.target.valueAsNumber)}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Monster speed</Form.Label>
+            <Form.Range
+              min={1}
+              max={10}
+              value={newMonsterSpeed}
+              onChange={(e) => setNewMonsterSpeed(e.target.valueAsNumber)}
             />
           </Form.Group>
         </Form>

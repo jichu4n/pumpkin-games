@@ -23,6 +23,13 @@ import {SettingsButton} from './settings-ui';
 /** Minimum stage width to be able to play the game. */
 const MIN_STAGE_WIDTH = 650;
 
+/** Number of monster styles. See public/monster-XX.png. */
+const NUM_MONSTER_STYLES = 10;
+
+function getRandomMonsterStyleId() {
+  return Math.floor(Math.random() * NUM_MONSTER_STYLES);
+}
+
 /** Status of the game. */
 enum GameStatus {
   /** Game is initializing. */
@@ -40,9 +47,14 @@ const SPRITE_SIZE = CELL_SIZE * 0.7;
 const WALL_COLOR = '#606060';
 const WALL_WIDTH = 3;
 const WALL_STYLE = `${WALL_WIDTH}px solid ${WALL_COLOR}`;
+const MONSTER_SAFE_ZONE_SIZE = 3;
 
 /** State of a pumpkin in the maze. */
 type PumpkinInMaze = CellCoords & {styleId: number};
+type MonsterInMaze = CellCoords & {
+  styleId: number;
+  prevCoords: CellCoords | null;
+};
 
 /** Current state of the game. */
 type GameState =
@@ -52,6 +64,7 @@ type GameState =
       maze: Maze;
       avatarCoords: CellCoords;
       pumpkinsInMaze: Map<CellIndex, PumpkinInMaze>;
+      monstersInMaze: Map<CellIndex, Array<MonsterInMaze>>;
       capturedPumpkins: Array<{styleId: number}>;
     };
 
@@ -67,9 +80,19 @@ export function MazeGame() {
     ref: stageRef,
   });
 
-  const {mazeWidth, mazeHeight, numPumpkins, coordsToIndex} = useSettings();
+  const {
+    mazeWidth,
+    mazeHeight,
+    numPumpkins,
+    numMonsters,
+    coordsToIndex,
+    monsterSpeed,
+  } = useSettings();
 
-  const generatePumpkins = useCallback((): Map<CellIndex, PumpkinInMaze> => {
+  const generatePumpkinsAndMonsters = useCallback((): {
+    pumpkins: Map<CellIndex, PumpkinInMaze>;
+    monsters: Map<CellIndex, Array<MonsterInMaze>>;
+  } => {
     const pumpkins = new Map<CellIndex, PumpkinInMaze>();
     for (let i = 0; i < numPumpkins; ++i) {
       for (;;) {
@@ -87,7 +110,34 @@ export function MazeGame() {
         break;
       }
     }
-    return pumpkins;
+
+    const monsters = new Map<CellIndex, Array<MonsterInMaze>>();
+    for (let i = 0; i < numMonsters; ++i) {
+      for (;;) {
+        const x = Math.floor(Math.random() * mazeWidth);
+        const y = Math.floor(Math.random() * mazeHeight);
+        const index = coordsToIndex({x, y});
+        if (
+          x < MONSTER_SAFE_ZONE_SIZE ||
+          y < MONSTER_SAFE_ZONE_SIZE ||
+          (x === mazeWidth - 1 && y === mazeHeight - 1) ||
+          monsters.has(index) ||
+          pumpkins.has(index)
+        ) {
+          continue;
+        }
+        monsters.set(index, [
+          {
+            x,
+            y,
+            styleId: getRandomMonsterStyleId(),
+            prevCoords: null,
+          },
+        ]);
+        break;
+      }
+    }
+    return {pumpkins, monsters};
   }, [coordsToIndex, mazeHeight, mazeWidth, numPumpkins]);
 
   // Main game loop.
@@ -97,11 +147,13 @@ export function MazeGame() {
         console.log('Init!');
         if (stageWidth > MIN_STAGE_WIDTH && stageHeight > 0) {
           console.log('set state');
+          const {pumpkins, monsters} = generatePumpkinsAndMonsters();
           setGameState({
             status: GameStatus.PLAYING,
             maze: generateMaze(mazeWidth, mazeHeight),
             avatarCoords: {x: 0, y: 0},
-            pumpkinsInMaze: generatePumpkins(),
+            pumpkinsInMaze: pumpkins,
+            monstersInMaze: monsters,
             capturedPumpkins: [],
           });
         }
@@ -128,7 +180,7 @@ export function MazeGame() {
     stageHeight,
     mazeWidth,
     mazeHeight,
-    generatePumpkins,
+    generatePumpkinsAndMonsters,
   ]);
 
   // Sound effects.
@@ -211,7 +263,17 @@ export function MazeGame() {
             }));
             const newAvatarIndex = coordsToIndex(newAvatarCoords);
             let soundEffect: HTMLAudioElement | null = null;
-            if (gameState.pumpkinsInMaze.has(newAvatarIndex)) {
+            if (gameState.monstersInMaze.has(newAvatarIndex)) {
+              setGameState((gameState) =>
+                gameState.status === GameStatus.PLAYING
+                  ? {
+                      ...gameState,
+                      status: GameStatus.LOST,
+                    }
+                  : gameState
+              );
+              soundEffect = soundEffects.LOST;
+            } else if (gameState.pumpkinsInMaze.has(newAvatarIndex)) {
               const {styleId} = gameState.pumpkinsInMaze.get(newAvatarIndex)!;
               setGameState((gameState) =>
                 gameState.status === GameStatus.PLAYING
@@ -293,6 +355,91 @@ export function MazeGame() {
     ]
   );
 
+  // Move monsters.
+  const moveMonsters = useCallback(() => {
+    setGameState((gameState) => {
+      if (gameState.status !== GameStatus.PLAYING) {
+        return gameState;
+      }
+      let newStatus = GameStatus.PLAYING;
+      const {maze, avatarCoords, monstersInMaze} = gameState;
+      const newMonstersInMaze = new Map<CellIndex, Array<MonsterInMaze>>();
+      for (const monsters of monstersInMaze.values()) {
+        for (const monster of monsters) {
+          const cell = maze[monster.y][monster.x];
+          let possibleNewCoords = [
+            {x: monster.x, y: monster.y - 1, wall: cell.topWall},
+            {x: monster.x, y: monster.y + 1, wall: cell.bottomWall},
+            {x: monster.x - 1, y: monster.y, wall: cell.leftWall},
+            {x: monster.x + 1, y: monster.y, wall: cell.rightWall},
+          ].filter(
+            ({x, y, wall}) =>
+              x >= MONSTER_SAFE_ZONE_SIZE &&
+              y >= MONSTER_SAFE_ZONE_SIZE &&
+              x < mazeWidth &&
+              y < mazeHeight &&
+              !wall
+          );
+          let newCoords: CellCoords;
+          if (
+            possibleNewCoords.some(
+              ({x, y}) => x === avatarCoords.x && y === avatarCoords.y
+            )
+          ) {
+            // Prefer catching the avatar if possible.
+            newCoords = avatarCoords;
+            newStatus = GameStatus.LOST;
+            soundEffects.LOST.load();
+            soundEffects.LOST.play().then(
+              // eslint-disable-next-line @typescript-eslint/no-empty-function
+              () => {},
+              (e) => {
+                console.error(e);
+              }
+            );
+          } else {
+            // Prefer moving away from the previous position.
+            if (monster.prevCoords) {
+              const possibleMovesWithoutPrevCoords = possibleNewCoords.filter(
+                ({x, y}) =>
+                  x !== monster.prevCoords?.x || y !== monster.prevCoords?.y
+              );
+              if (possibleMovesWithoutPrevCoords.length > 0) {
+                possibleNewCoords = possibleMovesWithoutPrevCoords;
+              }
+            }
+            // Pick random position.
+            newCoords =
+              possibleNewCoords[
+                Math.floor(Math.random() * possibleNewCoords.length)
+              ];
+          }
+          const newMonster = {
+            ...monster,
+            x: newCoords.x,
+            y: newCoords.y,
+            prevCoords: {x: monster.x, y: monster.y},
+          };
+          const newIndex = coordsToIndex(newCoords);
+          if (newMonstersInMaze.has(newIndex)) {
+            newMonstersInMaze.get(newIndex)!.push(newMonster);
+          } else {
+            newMonstersInMaze.set(newIndex, [newMonster]);
+          }
+        }
+      }
+      return {
+        ...gameState,
+        status: newStatus,
+        monstersInMaze: newMonstersInMaze,
+      };
+    });
+  }, []);
+  useEffect(() => {
+    const interval = setInterval(moveMonsters, 5000 / monsterSpeed);
+    return () => clearInterval(interval);
+  }, [moveMonsters, monsterSpeed]);
+
   const onSettingsChange = useCallback(() => {
     setGameState({status: GameStatus.INIT});
   }, []);
@@ -368,19 +515,33 @@ export function MazeGame() {
                         />
                         {
                           // Draw pumpkins
-                          gameState.pumpkinsInMaze.has(
-                            coordsToIndex({x, y})
-                          ) && (
-                            <PumpkinSprite
-                              letter=""
-                              size={SPRITE_SIZE}
-                              styleId={
-                                gameState.pumpkinsInMaze.get(
-                                  coordsToIndex({x, y})
-                                )!.styleId
-                              }
-                            />
-                          )
+                          gameState.pumpkinsInMaze.has(coordsToIndex({x, y})) &&
+                            !gameState.monstersInMaze.has(
+                              coordsToIndex({x, y})
+                            ) && (
+                              <PumpkinSprite
+                                letter=""
+                                size={SPRITE_SIZE}
+                                styleId={
+                                  gameState.pumpkinsInMaze.get(
+                                    coordsToIndex({x, y})
+                                  )!.styleId
+                                }
+                              />
+                            )
+                        }
+                        {
+                          // Draw monsters
+                          gameState.monstersInMaze.has(coordsToIndex({x, y})) &&
+                            gameState.monstersInMaze
+                              .get(coordsToIndex({x, y}))
+                              ?.slice(0, 1)
+                              ?.map((monster) => (
+                                <MonsterSprite
+                                  size={SPRITE_SIZE}
+                                  styleId={monster.styleId}
+                                />
+                              ))
                         }
                         {
                           // Draw avatar
@@ -496,6 +657,28 @@ export function AvatarSprite({
         height: size,
         width: size,
         backgroundImage: `url(${avatar?.src})`,
+        backgroundSize: 'contain',
+        ...style,
+      }}
+    />
+  );
+}
+
+export function MonsterSprite({
+  styleId,
+  size,
+  style,
+}: {
+  styleId: number;
+  size: number;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <div
+      style={{
+        height: size,
+        width: size,
+        backgroundImage: `url(./monster-${styleId}.png)`,
         backgroundSize: 'contain',
         ...style,
       }}
