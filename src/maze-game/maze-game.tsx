@@ -68,6 +68,69 @@ type GameState =
       capturedPumpkins: Array<{styleId: number}>;
     };
 
+function generatePumpkinsAndMonsters({
+  mazeWidth,
+  mazeHeight,
+  coordsToIndex,
+  numPumpkins,
+  numMonsters,
+}: {
+  mazeWidth: number;
+  mazeHeight: number;
+  coordsToIndex: (coords: CellCoords) => CellIndex;
+  numPumpkins: number;
+  numMonsters: number;
+}): {
+  pumpkins: Map<CellIndex, PumpkinInMaze>;
+  monsters: Map<CellIndex, Array<MonsterInMaze>>;
+} {
+  const pumpkins = new Map<CellIndex, PumpkinInMaze>();
+  for (let i = 0; i < numPumpkins; ++i) {
+    for (;;) {
+      const x = Math.floor(Math.random() * mazeWidth);
+      const y = Math.floor(Math.random() * mazeHeight);
+      const index = coordsToIndex({x, y});
+      if (
+        (x === 0 && y === 0) ||
+        (x === mazeWidth - 1 && y === mazeHeight - 1) ||
+        pumpkins.has(index)
+      ) {
+        continue;
+      }
+      pumpkins.set(index, {x, y, styleId: getRandomStyleId()});
+      break;
+    }
+  }
+
+  const monsters = new Map<CellIndex, Array<MonsterInMaze>>();
+  for (let i = 0; i < numMonsters; ++i) {
+    for (;;) {
+      const x = Math.floor(Math.random() * mazeWidth);
+      const y = Math.floor(Math.random() * mazeHeight);
+      const index = coordsToIndex({x, y});
+      if (
+        x < MONSTER_SAFE_ZONE_SIZE ||
+        y < MONSTER_SAFE_ZONE_SIZE ||
+        (x === mazeWidth - 1 && y === mazeHeight - 1) ||
+        monsters.has(index) ||
+        pumpkins.has(index)
+      ) {
+        continue;
+      }
+      monsters.set(index, [
+        {
+          x,
+          y,
+          styleId: getRandomMonsterStyleId(),
+          prevCoords: null,
+        },
+      ]);
+      break;
+    }
+  }
+  return {pumpkins, monsters};
+}
+
 export function MazeGame() {
   /** The current game state. */
   const [gameState, setGameState] = useState<GameState>({
@@ -89,68 +152,23 @@ export function MazeGame() {
     monsterSpeed,
   } = useSettings();
 
-  const generatePumpkinsAndMonsters = useCallback((): {
-    pumpkins: Map<CellIndex, PumpkinInMaze>;
-    monsters: Map<CellIndex, Array<MonsterInMaze>>;
-  } => {
-    const pumpkins = new Map<CellIndex, PumpkinInMaze>();
-    for (let i = 0; i < numPumpkins; ++i) {
-      for (;;) {
-        const x = Math.floor(Math.random() * mazeWidth);
-        const y = Math.floor(Math.random() * mazeHeight);
-        const index = coordsToIndex({x, y});
-        if (
-          (x === 0 && y === 0) ||
-          (x === mazeWidth - 1 && y === mazeHeight - 1) ||
-          pumpkins.has(index)
-        ) {
-          continue;
-        }
-        pumpkins.set(index, {x, y, styleId: getRandomStyleId()});
-        break;
-      }
-    }
-
-    const monsters = new Map<CellIndex, Array<MonsterInMaze>>();
-    for (let i = 0; i < numMonsters; ++i) {
-      for (;;) {
-        const x = Math.floor(Math.random() * mazeWidth);
-        const y = Math.floor(Math.random() * mazeHeight);
-        const index = coordsToIndex({x, y});
-        if (
-          x < MONSTER_SAFE_ZONE_SIZE ||
-          y < MONSTER_SAFE_ZONE_SIZE ||
-          (x === mazeWidth - 1 && y === mazeHeight - 1) ||
-          monsters.has(index) ||
-          pumpkins.has(index)
-        ) {
-          continue;
-        }
-        monsters.set(index, [
-          {
-            x,
-            y,
-            styleId: getRandomMonsterStyleId(),
-            prevCoords: null,
-          },
-        ]);
-        break;
-      }
-    }
-    return {pumpkins, monsters};
-  }, [coordsToIndex, mazeHeight, mazeWidth, numPumpkins]);
-
   // Main game loop.
   useEffect(() => {
     switch (gameState.status) {
       case GameStatus.INIT: {
         console.log('Init!');
         if (stageWidth > MIN_STAGE_WIDTH && stageHeight > 0) {
-          console.log('set state');
-          const {pumpkins, monsters} = generatePumpkinsAndMonsters();
+          const maze = generateMaze(mazeWidth, mazeHeight);
+          const {pumpkins, monsters} = generatePumpkinsAndMonsters({
+            mazeWidth,
+            mazeHeight,
+            coordsToIndex,
+            numPumpkins,
+            numMonsters,
+          });
           setGameState({
             status: GameStatus.PLAYING,
-            maze: generateMaze(mazeWidth, mazeHeight),
+            maze,
             avatarCoords: {x: 0, y: 0},
             pumpkinsInMaze: pumpkins,
             monstersInMaze: monsters,
@@ -180,7 +198,9 @@ export function MazeGame() {
     stageHeight,
     mazeWidth,
     mazeHeight,
-    generatePumpkinsAndMonsters,
+    coordsToIndex,
+    numPumpkins,
+    numMonsters,
   ]);
 
   // Sound effects.
@@ -434,7 +454,8 @@ export function MazeGame() {
         monstersInMaze: newMonstersInMaze,
       };
     });
-  }, []);
+  }, [mazeWidth, mazeHeight, coordsToIndex, soundEffects.LOST]);
+
   useEffect(() => {
     const interval = setInterval(moveMonsters, 5000 / monsterSpeed);
     return () => clearInterval(interval);
@@ -536,8 +557,9 @@ export function MazeGame() {
                             gameState.monstersInMaze
                               .get(coordsToIndex({x, y}))
                               ?.slice(0, 1)
-                              ?.map((monster) => (
+                              ?.map((monster, idx) => (
                                 <MonsterSprite
+                                  key={idx}
                                   size={SPRITE_SIZE}
                                   styleId={monster.styleId}
                                 />

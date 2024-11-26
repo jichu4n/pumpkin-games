@@ -77,6 +77,7 @@ export function SettingsDialog({
     setMazeHeight,
     setNumPumpkins,
     setNumMonsters,
+    setMonsterSpeed,
     onSettingsChange,
   ]);
 
