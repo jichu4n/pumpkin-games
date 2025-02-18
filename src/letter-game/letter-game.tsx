@@ -230,7 +230,6 @@ export function LetterGame() {
           }
           soundEffect.load();
           soundEffect.play().then(
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
             () => {},
             (e) => {
               console.error(e);
