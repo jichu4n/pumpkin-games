@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint . --report-unused-disable-directives",
+    "lint:prettier": "prettier --check .",
+    "lint:eslint": "eslint . --report-unused-disable-directives",
+    "lint": "npm run lint:prettier && npm run lint:eslint",
     "preview": "vite preview"
   },
   "dependencies": {
