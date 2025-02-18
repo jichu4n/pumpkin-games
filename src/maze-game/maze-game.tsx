@@ -339,7 +339,6 @@ export function MazeGame() {
             if (soundEffect) {
               soundEffect.load();
               soundEffect.play().then(
-                // eslint-disable-next-line @typescript-eslint/no-empty-function
                 () => {},
                 (e) => {
                   console.error(e);
@@ -411,7 +410,6 @@ export function MazeGame() {
             newStatus = GameStatus.LOST;
             soundEffects.LOST.load();
             soundEffects.LOST.play().then(
-              // eslint-disable-next-line @typescript-eslint/no-empty-function
               () => {},
               (e) => {
                 console.error(e);
